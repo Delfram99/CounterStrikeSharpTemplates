@@ -1,0 +1,106 @@
+name: Publish && Release
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+env:
+  DOTNET_NOLOGO: true
+
+jobs:
+  version:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    outputs:
+      new_tag: ${{ steps.create_tag.outputs.new_tag }}
+      version_changed: ${{ steps.check_version.outputs.version_changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+
+      - name: Get latest release tag
+        id: get_latest
+        uses: actions/github-script@v7.0.1
+        with:
+          script: |
+            let tag_name;
+            try {
+              const response = await github.rest.repos.getLatestRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+              });
+              tag_name = response.data.tag_name;
+            } catch (error) {
+              if (error.status === 404) {
+                console.log("No releases found. Setting default value.");
+                tag_name = 'v0.0.0';
+              } else {
+                throw error;
+              }
+            }
+            return tag_name;
+
+      - name: Bump version and push tag
+        id: create_tag
+        uses: anothrNick/github-tag-action@1.64.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: false
+          DEFAULT_BUMP: none
+          INITIAL_VERSION: 1.0.0
+      
+      - name: Check if version changed
+        id: check_version
+        run: |
+          if [ "${{ steps.create_tag.outputs.new_tag }}" != ${{ steps.get_latest.outputs.result }} ]; then
+            echo "version_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "version_changed=false" >> $GITHUB_OUTPUT
+          fi
+
+  pack:
+    if: needs.version.outputs.version_changed == 'true'
+    needs: version
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '7.0.x'
+
+      - name: Pack
+        run: dotnet pack -o nupkgs /p:PackageVersion=${{ needs.version.outputs.new_tag }}
+      
+      - name: Push to NuGet
+      run: dotnet nuget push nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+
+  release:
+    needs: [version, pack]
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create release
+        uses: actions/github-script@v7.0.1
+        with:
+          script: |
+            const releaseResponse = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: '${{ needs.version.outputs.new_tag }}',
+              name: 'CounterStrikeSharpTemplates [${{ needs.version.outputs.new_tag }}]',
+              body: 'Changes in this Release',
+              draft: false,
+              prerelease: false
+            });
+            
+            console.log(`Release created: ${releaseResponse.data.html_url}`);

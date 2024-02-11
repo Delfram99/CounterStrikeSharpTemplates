@@ -1,0 +1,5 @@
+bin/
+obj/
+*.sln
+content/templates/*/bin/
+content/templates/*/obj/

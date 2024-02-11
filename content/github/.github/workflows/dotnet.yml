@@ -1,0 +1,193 @@
+name: Build & Release
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      PluginVersion:
+        description: 'Plugin Version'
+        required: true
+        default: 'v0.0.0'
+
+env:
+  PLUGIN_NAME: CSSharpTemplates
+  DOTNET_VERSION: 7.0.x
+  PATH_PLUGIN: addons/counterstrikesharp/plugins/
+  START_VERSION: 1.0.0
+  USE_V_VERSION: true
+
+jobs:
+  version:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    outputs:
+      new_tag: ${{ steps.determine_new_tag.outputs.result }}
+      no_release: ${{ steps.check_release.outputs.result }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+
+      - name: Check if tag exists
+        if: github.event_name == 'workflow_dispatch'
+        id: check_tag
+        run: |
+          if git fetch --tags && git tag -l | grep -q "^${{ github.event.inputs.PluginVersion }}$"; then
+            echo "Tag ${{ github.event.inputs.PluginVersion }} already exists."
+            echo "tag_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "Tag ${{ github.event.inputs.PluginVersion }} does not exist."
+            echo "tag_exists=false" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
+  
+      - name: Set custom tag and push to repository
+        if: github.event_name == 'workflow_dispatch' && steps.check_tag.outputs.tag_exists == 'false'
+        id: set_custom_tag
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git tag ${{ github.event.inputs.PluginVersion }}
+          git push origin ${{ github.event.inputs.PluginVersion }}
+        shell: bash
+
+      - name: Bump version and push tag
+        if: github.event_name != 'workflow_dispatch'
+        id: create_tag
+        uses: anothrNick/github-tag-action@1.64.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: ${{ env.USE_V_VERSION }}
+          DEFAULT_BUMP: none
+          INITIAL_VERSION: ${{ env.START_VERSION }}
+
+      - name: Determine New Tag
+        id: determine_new_tag
+        uses: actions/github-script@v7.0.1
+        with:
+          script: |
+            const customTag = "${{ github.event.inputs.PluginVersion }}";
+            const createdTag = "${{ steps.create_tag.outputs.new_tag }}";
+            const newTag = customTag ? customTag : createdTag;
+            console.log(`New tag determined: ${newTag}`);
+            return newTag;
+
+      - name: Check if release exists
+        id: check_release
+        uses: actions/github-script@v7.0.1
+        with:
+          script: |
+            let release_exists;
+            try {
+              const response = await github.rest.repos.getReleaseByTag({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag: ${{ steps.determine_new_tag.outputs.result }}
+              });
+              console.log(`Release found for tag: ${response.data.tag_name}`);
+              release_exists = true;
+            } catch (error) {
+              if (error.status === 404) {
+                console.log("No release found for this tag.");
+                release_exists = false;
+              } else {
+                throw error;
+              }
+            }
+            return release_exists;
+
+  build:
+    if: needs.version.outputs.no_release == 'false'
+    needs: version
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Update version
+      run: find . -type f -name '*.cs' -exec sed -i 's/public override string ModuleVersion =>.*/public override string ModuleVersion => ${{ needs.version.outputs.new_tag }};/g' {} \;
+    
+    - name: Build
+      run: dotnet build -c Release
+    
+    - name: Create plugin directory
+      run: |
+        mkdir -p plugin/${{ env.PATH_PLUGIN }}${{ env.PLUGIN_NAME }}
+        rm -rf ./bin/Release/net7.0/*.pdb
+        rm -rf ./bin/Release/net7.0/*.deps.json
+        cp -r ./bin/Release/net7.0/* plugin/${{ env.PATH_PLUGIN }}${{ env.PLUGIN_NAME }}
+
+    - name: Zip plugin
+      run: |
+        cd plugin/
+        zip -r ${{ env.PLUGIN_NAME }}-${{ github.sha }}.zip .
+
+    - name: Publish
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.PLUGIN_NAME }}-${{ github.sha }}
+        path: plugin
+
+  release:
+    needs: [version, build]
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.PLUGIN_NAME }}-${{ github.sha }}
+          path: plugin
+
+      - name: Create release
+        id: create_release
+        uses: actions/github-script@v7.0.1
+        with:
+          script: |
+            const tag_name = ${{ needs.version.outputs.new_tag }}.replace(/\"/g, '');
+            const release = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: tag_name,
+              name: `[${tag_name}] ${{ env.PLUGIN_NAME }}`,
+              body: "Changes in this Release",
+              draft: false,
+              prerelease: false
+            });
+            return release.data.id;
+
+      - name: Upload release asset
+        id: upload-release-asset
+        uses: actions/github-script@v7.0.1
+        with:
+          script: |
+            const fs = require('fs');
+            const assetPath = `./plugin/${{ env.PLUGIN_NAME }}-${{ github.sha }}.zip`;
+            const assetName = `${{ env.PLUGIN_NAME }}-${{ needs.version.outputs.new_tag }}.zip`;
+            const asset = fs.readFileSync(assetPath);
+            
+            const response = await github.rest.repos.uploadReleaseAsset({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: ${{ steps.create_release.outputs.result }},
+              name: assetName,
+              data: asset,
+              headers: {
+                'content-type': 'application/zip',
+                'content-length': asset.length
+              }
+            });
+            console.log(`Asset uploaded: ${response.data.browser_download_url}`);

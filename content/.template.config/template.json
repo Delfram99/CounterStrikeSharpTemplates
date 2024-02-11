@@ -1,0 +1,104 @@
+{
+    "$schema": "http://json.schemastore.org/template",
+    "author": "Delfram",
+    "classifications": [
+        "CounterStrikeSharp",
+        "cssharp", 
+        "CS2Plugin", 
+        "Game", 
+        "C#", 
+        "Template", 
+        "DotNet"
+    ],
+    "name": "CounterStrikeSharpTemplates",
+    "groupIdentity": "com.plugin.CounterStrikeSharp",
+    "identity": "com.plugin.CounterStrikeSharp.Template.1.0.0",
+    "description": "This is a collection templates specifically designed for creating plugins for the Runtime Assembly CounterStrikeSharp. It includes foundational structures and utility functions to expedite your CounterStrikeSharp plugin development.",
+    "shortName": "cssharp",
+    "sourceName": "CSSharpTemplates",
+    "tags": {
+        "language": "C#",
+        "type": "project"
+    },
+    "preferNameDirectory": true,
+    "symbols": {
+        "g": {
+            "type": "parameter",
+            "datatype": "bool",
+            "description": "Provides GitHub support for the project by adding workflows.",
+            "defaultValue": "false"
+        },
+        "np": {
+            "type": "parameter",
+            "replaces": "MyPlugin",
+            "defaultValue": "MyPlugin",
+            "description": "The name of the plugin."
+        },
+        "ap": {
+            "type": "parameter",
+            "replaces": "AuthorName",
+            "defaultValue": "AuthorName",
+            "description": "The name of the plugin author."
+        },
+        "t": {
+            "type": "parameter",
+            "datatype": "choice",
+            "choices": [
+                {
+                    "choice": "default", 
+                    "description": "A basic template that includes a default class for starting development from scratch."
+                },
+                {
+                    "choice": "config", 
+                    "description": "A template that includes a class pre-configured with a JSON configuration file."
+                },
+                {
+                    "choice": "lang", 
+                    "description": "A template that includes a class equipped with language translation and command handling capabilities."
+                },
+                {
+                    "choice": "configlang", 
+                    "description": "A comprehensive template that includes a class with support for JSON configuration files, language translations, and command handling."
+                },
+                {
+                    "choice": "datamysql", 
+                    "description": "An advanced template that provides classes equipped with MySQL database integration, language translation, configuration management, and command handling capabilities."
+                }
+            ],
+            "defaultValue": "default",
+            "description": "Choose the type of template for your project based on the features you need."
+        }
+    },
+    "sources": [
+        {
+            "source": "github/",
+            "target": "./",
+            "condition": "(g == 'true')"
+        },
+        {
+            "source": "templates/default",
+            "target": "./",
+            "condition": "(t == 'default')"
+        },
+        {
+            "source": "templates/config",
+            "target": "./",
+            "condition": "(t == 'config')"
+        },
+        {
+            "source": "templates/lang",
+            "target": "./",
+            "condition": "(t == 'lang')"
+        },
+        {
+            "source": "templates/configlang",
+            "target": "./",
+            "condition": "(t == 'configlang')"
+        },
+        {
+            "source": "templates/datamysql",
+            "target": "./",
+            "condition": "(t == 'datamysql')"
+        }
+    ]
+}
