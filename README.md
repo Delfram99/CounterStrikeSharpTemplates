@@ -2,6 +2,7 @@
 
 [![NuGet Version](https://img.shields.io/nuget/v/CounterStrikeSharpTemplates)](https://www.nuget.org/packages/CounterStrikeSharpTemplates)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 ## Description
 
 CounterStrikeSharpTemplates is a thoughtfully designed template set for kick-starting your plugin development for the great [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp). The templates offer foundational structures and useful functions, along with pre-configured GitHub workflows, making the initiation of plugin development a breeze. With adaptable templates and an automated version control system, it caters to both beginners and experienced developers alike.
@@ -12,7 +13,7 @@ CounterStrikeSharpTemplates is a thoughtfully designed template set for kick-sta
 2. Install the templates package:
 
 ```bash
-dotnet new -i CSSharpTemplates
+dotnet new install CounterStrikeSharpTemplates
 ```
 
 ## Usage
