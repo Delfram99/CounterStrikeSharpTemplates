@@ -83,7 +83,7 @@
         {
             "source": "templates/config",
             "target": "./",
-            "condition": "(t == 'config' || framework == 'config')"
+            "condition": "(t == 'config')"
         },
         {
             "source": "templates/lang",
