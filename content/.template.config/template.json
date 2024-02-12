@@ -3,11 +3,11 @@
     "author": "Delfram",
     "classifications": [
         "CounterStrikeSharp",
-        "cssharp", 
-        "CS2Plugin", 
-        "Game", 
-        "C#", 
-        "Template", 
+        "cssharp",
+        "CS2Plugin",
+        "Game",
+        "C#",
+        "Template",
         "DotNet"
     ],
     "name": "CounterStrikeSharpTemplates",
@@ -45,23 +45,23 @@
             "datatype": "choice",
             "choices": [
                 {
-                    "choice": "default", 
+                    "choice": "default",
                     "description": "A basic template that includes a default class for starting development from scratch."
                 },
                 {
-                    "choice": "config", 
+                    "choice": "config",
                     "description": "A template that includes a class pre-configured with a JSON configuration file."
                 },
                 {
-                    "choice": "lang", 
+                    "choice": "lang",
                     "description": "A template that includes a class equipped with language translation and command handling capabilities."
                 },
                 {
-                    "choice": "configlang", 
+                    "choice": "configlang",
                     "description": "A comprehensive template that includes a class with support for JSON configuration files, language translations, and command handling."
                 },
                 {
-                    "choice": "datamysql", 
+                    "choice": "datamysql",
                     "description": "An advanced template that provides classes equipped with MySQL database integration, language translation, configuration management, and command handling capabilities."
                 }
             ],
@@ -83,7 +83,7 @@
         {
             "source": "templates/config",
             "target": "./",
-            "condition": "(t == 'config')"
+            "condition": "(t == 'config' || framework == 'config')"
         },
         {
             "source": "templates/lang",

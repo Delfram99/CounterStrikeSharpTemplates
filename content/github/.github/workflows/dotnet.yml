@@ -10,7 +10,7 @@ on:
       PluginVersion:
         description: 'Plugin Version'
         required: true
-        default: 'v0.0.0'
+        default: 'v1.0.0'
 
 env:
   PLUGIN_NAME: CSSharpTemplates
