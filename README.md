@@ -18,7 +18,7 @@ dotnet new install CounterStrikeSharpTemplates
 
 ## Usage
 
-Available templates:
+Currently available templates:
 
 - `default`: сreates a basic plugin template.
 - `config`: сreates a plugin template that includes a configuration file.
@@ -66,12 +66,22 @@ For manual version specification, use the `workflow_dispatch` option in the GitH
 
 In `dotnet.yml`, modify these variables as needed:
 
-- `PLUGIN_NAME`: your plugin's name.
-- `DOTNET_VERSION`: .NET version (default is `7.0`).
+- `PLUGIN_NAME`: your plugin's name (please do not use spaces).
+- `DOTNET_VERSION`: .NET version (default is `7.0.x`).
 - `PATH_PLUGIN`: plugin path (default is `addons/counterstrikesharp/plugins/`).
 - `START_VERSION`: starting version (default is `1.0.0`).
 - `USE_V_VERSION`: prefix the version number with a 'v' (default is `true`).
 
+## Conclusion
+
+In the future, additional templates will be added as needed. If you have any ideas on how to improve or modify these templates to make plugin development even easier, please let me know.
+
+Feel free to open an issue or submit a pull request if you have any suggestions or find any problems. Your feedback is always welcome!
+
+## Contact
+
+If you have any questions or suggestions, feel free to contact me on Discord: `delfram`.
+
 ## Credits
 
-This project was inspired by [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp). A big thank you to the creators of this project for their contribution to the community and for providing the foundation for the development of these templates.❤️
+This project was inspired by [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp). A big thank you to the creators of this project for their contribution to the community and for providing the foundation for the development of these templates. ❤️
