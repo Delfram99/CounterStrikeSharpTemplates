@@ -98,7 +98,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               tag_name: '${{ needs.version.outputs.new_tag }}',
-              name: 'CounterStrikeSharpTemplates [${{ needs.version.outputs.new_tag }}]',
+              name: '[${{ needs.version.outputs.new_tag }}] CSSharpTemplates',
               body: 'Changes in this Release',
               draft: false,
               prerelease: false
