@@ -81,7 +81,7 @@ jobs:
         run: dotnet pack -o nupkgs /p:PackageVersion=${{ needs.version.outputs.new_tag }}
       
       - name: Push to NuGet
-        run: dotnet nuget push nupkgs/CounterStrikeSharpTemplates.${{ needs.version.outputs.new_tag }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+        run: dotnet nuget push nupkgs/CounterStrikeSharpTemplates.${{ needs.version.outputs.new_tag }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source "https://api.nuget.org/v3/index.json"
 
   release:
     needs: [version, pack]
