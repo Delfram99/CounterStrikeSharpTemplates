@@ -1,7 +1,7 @@
 # CounterStrikeSharpTemplates
 
+[![NuGet Version](https://img.shields.io/nuget/v/CounterStrikeSharpTemplates)](https://www.nuget.org/packages/CounterStrikeSharpTemplates)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-
 ## Description
 
 CounterStrikeSharpTemplates is a thoughtfully designed template set for kick-starting your plugin development for the great [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp). The templates offer foundational structures and useful functions, along with pre-configured GitHub workflows, making the initiation of plugin development a breeze. With adaptable templates and an automated version control system, it caters to both beginners and experienced developers alike.
@@ -70,7 +70,7 @@ In `dotnet.yml`, modify these variables as needed:
 - `PATH_PLUGIN`: plugin path (default is `addons/counterstrikesharp/plugins/`).
 - `START_VERSION`: starting version (default is `1.0.0`).
 - `USE_V_VERSION`: prefix the version number with a 'v' (default is `true`).
-  
+
 ## Credits
 
 This project was inspired by [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp). A big thank you to the creators of this project for their contribution to the community and for providing the foundation for the development of these templates.❤️
