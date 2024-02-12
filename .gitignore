@@ -1,5 +1,6 @@
 bin/
 obj/
+packed/
 *.sln
 content/templates/*/bin/
 content/templates/*/obj/

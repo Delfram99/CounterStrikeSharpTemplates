@@ -3,12 +3,13 @@ name: Publish && Release
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'content/**'
   pull_request:
     branches: [ "main" ]
+    paths:
+      - 'content/**'
   workflow_dispatch:
-
-env:
-  DOTNET_NOLOGO: true
 
 jobs:
   version:
@@ -79,9 +80,16 @@ jobs:
 
       - name: Pack
         run: dotnet pack -o nupkgs /p:PackageVersion=${{ needs.version.outputs.new_tag }}
+
+      - name: Setup GitHub Packages Source
+        run: |
+          dotnet nuget add source --name github --username ${{ github.actor }} --password ${{ secrets.GH_PACKAGES_TOKEN }} --store-password-in-clear-text https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
       
       - name: Push to NuGet
-        run: dotnet nuget push nupkgs/CounterStrikeSharpTemplates.${{ needs.version.outputs.new_tag }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+        run: dotnet nuget push nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+
+      - name: Push to GitHub Packages
+        run: dotnet nuget push nupkgs/*.nupkg --source github --api-key ${{ secrets.GH_PACKAGES_TOKEN }}
 
   release:
     needs: [version, pack]
