@@ -71,6 +71,10 @@
     },
     "sources": [
         {
+            "source": "ide/vscode/",
+            "target": "./"
+        },
+        {
             "source": "github/",
             "target": "./",
             "condition": "(g == 'true')"

@@ -21,12 +21,12 @@ dotnet new install CounterStrikeSharpTemplates
 Currently available templates:
 
 - `default`: сreates a basic plugin template.
-- `config`: сreates a plugin template that includes a configuration file.
-- `lang`: сreates a plugin template that includes a language file.
-- `configlang`: сreates a plugin template that includes both a configuration and a language file.
-- `datamysql`: сreates a plugin template that includes a database (MySQL), language file, configuration file, and commands.
+- `config`: сreates a plugin template that includes a configuration.
+- `lang`: сreates a plugin template that includes a language.
+- `configlang`: сreates a plugin template that includes both a configuration and a language.
+- `datamysql`: сreates a plugin template that includes a database (MySQL), language, configuration, and commands.
 
-You can also add your own templates.
+[You can also add your own templates](#adding-your-own-template).
 
 To specify a template type, use `--t`:
 
@@ -52,6 +52,22 @@ Customize with `--np` (plugin name) and `--ap` (author):
 dotnet new cssharp -n MyPlugin --t datamysql --g --np "My Plugin" --ap "Author Name"
 ```
 
+## Local Compilation
+
+For local compilation in Visual Studio Code, you can use the hotkey `Ctrl + Shift + B`. This will trigger the build task defined in the `tasks.json` file.
+
+To have the plugin compiled directly into your server folder, replace the line in the `.vscode/tasks.json` file:
+
+```json
+"compiled/CSSharpTemplates"
+```
+
+with your own path, for example:
+
+```json
+"D:/cs2-server/game/csgo/addons/counterstrikesharp/plugins/CSSharpTemplates"
+```
+
 ## Versioning
 
 Push commit messages with `#major`, `#minor`, or `#patch` to update the plugin's version (when `--g` is used):
@@ -71,6 +87,49 @@ In `dotnet.yml`, modify these variables as needed:
 - `PATH_PLUGIN`: plugin path (default is `addons/counterstrikesharp/plugins/`).
 - `START_VERSION`: starting version (default is `1.0.0`).
 - `USE_V_VERSION`: prefix the version number with a 'v' (default is `true`).
+
+## Adding Your Own Template
+
+To add your own template, follow these steps:
+
+1. Clone the repository:
+
+    ```bash
+    git clone https://github.com/Delfram99/CounterStrikeSharpTemplates.git
+    ```
+
+2. In the `content/templates` directory, create a new directory for your template. For example, if your template is named "example", create a directory named `example` and place all the necessary template files in it.
+
+3. In the `content/.template.config/template.json` file, find the `"choices"` section under `"t"`. Add a new choice for your template. For example:
+
+    ```json
+    {
+        "choice": "example",
+        "description": "example description."
+    }
+    ```
+
+4. In the `"sources"` section, add a new source with a condition for your template. For example:
+
+    ```json
+    {
+        "source": "templates/example",
+        "target": "./",
+        "condition": "(t == 'example')"
+    }
+    ```
+
+5. Before installing the new template, you need to uninstall the existing one to avoid conflicts:
+
+    ```bash
+    dotnet new uninstall CounterStrikeSharpTemplates
+    ```
+
+6. Install the new template:
+
+    ```bash
+    dotnet new install . --force
+    ```
 
 ## Conclusion
 
