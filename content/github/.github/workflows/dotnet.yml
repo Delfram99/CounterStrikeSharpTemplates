@@ -14,7 +14,7 @@ on:
 
 env:
   PLUGIN_NAME: CSSharpTemplates
-  DOTNET_VERSION: 7.0.x
+  DOTNET_VERSION: 8.0.x
   PATH_PLUGIN: addons/counterstrikesharp/plugins/
   START_VERSION: 1.0.0
   USE_V_VERSION: true
@@ -123,9 +123,9 @@ jobs:
     - name: Create plugin directory
       run: |
         mkdir -p plugin/${{ env.PATH_PLUGIN }}${{ env.PLUGIN_NAME }}
-        rm -rf ./bin/Release/net7.0/*.pdb
-        rm -rf ./bin/Release/net7.0/*.deps.json
-        cp -r ./bin/Release/net7.0/* plugin/${{ env.PATH_PLUGIN }}${{ env.PLUGIN_NAME }}
+        rm -rf ./bin/Release/net8.0/*.pdb
+        rm -rf ./bin/Release/net8.0/*.deps.json
+        cp -r ./bin/Release/net8.0/* plugin/${{ env.PATH_PLUGIN }}${{ env.PLUGIN_NAME }}
 
     - name: Zip plugin
       run: |

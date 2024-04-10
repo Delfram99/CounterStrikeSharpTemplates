@@ -92,7 +92,7 @@ This will trigger the workflow with the specified version, build your plugin, an
 In the `dotnet.yml` file, several environment variables are defined under the `env` section:
 
 - `PLUGIN_NAME`: The name of your plugin.
-- `DOTNET_VERSION`: The version of .NET you are using in your project. Currently, it's set to `7.0`.
+- `DOTNET_VERSION`: The version of .NET you are using in your project. Currently, it's set to `8.0`.
 - `PATH_PLUGIN`: The path where your plugin is located. Here, it's `addons/counterstrikesharp/plugins/`.
 - `START_VERSION`: The starting version of your project. It's set to `1.0.0`.
 - `USE_V_VERSION`: A boolean value indicating whether to prefix the version number with a 'v'. If set to `true`, your version will look like `v1.0.0`.
