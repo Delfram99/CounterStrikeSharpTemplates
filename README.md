@@ -9,7 +9,7 @@ CounterStrikeSharpTemplates is a thoughtfully designed template set for kick-sta
 
 ## Installation
 
-1. Install the [.NET 7.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/7.0).
+1. Install the [.NET 8.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
 2. Install the templates package:
 
 ```bash
@@ -83,7 +83,7 @@ For manual version specification, use the `workflow_dispatch` option in the GitH
 In `dotnet.yml`, modify these variables as needed:
 
 - `PLUGIN_NAME`: your plugin's name (please do not use spaces).
-- `DOTNET_VERSION`: .NET version (default is `7.0.x`).
+- `DOTNET_VERSION`: .NET version (default is `8.0.x`).
 - `PATH_PLUGIN`: plugin path (default is `addons/counterstrikesharp/plugins/`).
 - `START_VERSION`: starting version (default is `1.0.0`).
 - `USE_V_VERSION`: prefix the version number with a 'v' (default is `true`).
