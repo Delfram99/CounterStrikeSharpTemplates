@@ -5,7 +5,7 @@
 
 ## Description
 
-CounterStrikeSharpTemplates is a thoughtfully designed template set for kick-starting your plugin development for the great [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp). The templates offer foundational structures and useful functions, along with pre-configured GitHub workflows, making the initiation of plugin development a breeze. With adaptable templates and an automated version control system, it caters to both beginners and experienced developers alike.
+Project templates for [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp) plugins: a ready-made project structure, a VS Code build task and an optional GitHub workflow with automatic versioning and releases.
 
 ## Installation
 
@@ -18,35 +18,30 @@ dotnet new install CounterStrikeSharpTemplates
 
 ## Usage
 
-Currently available templates:
-
-- `default`: сreates a basic plugin template.
-- `config`: сreates a plugin template that includes a configuration.
-- `lang`: сreates a plugin template that includes a language.
-- `configlang`: сreates a plugin template that includes both a configuration and a language.
-- `datamysql`: сreates a plugin template that includes a database (MySQL), language, configuration, and commands.
-
-[You can also add your own templates](#adding-your-own-template).
-
-To specify a template type, use `--t`:
-
-```bash
-dotnet new cssharp -n MyPlugin --t config
-```
-
-To create a new basic project (using the `default` template), just:
-
 ```bash
 dotnet new cssharp -n MyPlugin
 ```
 
-For GitHub integration (which provides GitHub workflows, .gitignore, etc.), add `--g`:
+### Templates (`--t`)
 
-```bash
-dotnet new cssharp -n MyPlugin --g
-```
+| Template | Contents |
+| --- | --- |
+| `default` | basic plugin, used when `--t` is omitted |
+| `config` | + JSON configuration |
+| `lang` | + translations and commands |
+| `configlang` | + configuration, translations and commands |
+| `datamysql` | + MySQL database, configuration, translations and commands |
 
-Customize with `--np` (plugin name) and `--ap` (author):
+[You can also add your own templates](#adding-your-own-template).
+
+### Options
+
+| Option | Description |
+| --- | --- |
+| `--t` | template type (see the table above) |
+| `--g` | add GitHub files: build & release workflow, release notes config, `.gitignore` |
+| `--np` | plugin name used in code (default `MyPlugin`) |
+| `--ap` | author name (default `AuthorName`) |
 
 ```bash
 dotnet new cssharp -n MyPlugin --t datamysql --g --np "My Plugin" --ap "Author Name"
@@ -54,15 +49,13 @@ dotnet new cssharp -n MyPlugin --t datamysql --g --np "My Plugin" --ap "Author N
 
 ## Local Compilation
 
-For local compilation in Visual Studio Code, you can use the hotkey `Ctrl + Shift + B`. This will trigger the build task defined in the `tasks.json` file.
-
-To have the plugin compiled directly into your server folder, replace the line in the `.vscode/tasks.json` file:
+`Ctrl + Shift + B` in Visual Studio Code runs the build task from `.vscode/tasks.json`. To compile the plugin straight into your server folder, replace the output path in that file:
 
 ```json
 "compiled/CSSharpTemplates"
 ```
 
-with your own path, for example:
+with your own, for example:
 
 ```json
 "D:/cs2-server/game/csgo/addons/counterstrikesharp/plugins/CSSharpTemplates"
@@ -70,27 +63,30 @@ with your own path, for example:
 
 ## Versioning
 
-Push commit messages with `#major`, `#minor`, or `#patch` to update the plugin's version (when `--g` is used):
+Available when the project is created with `--g`. The version is bumped by a keyword in the commit message:
 
 ```bash
 git commit -m "add new feature #minor"
 ```
 
-For manual version specification, use the `workflow_dispatch` option in the GitHub Actions tab.
+`#major` → `2.0.0`, `#minor` → `1.1.0`, `#patch` → `1.0.1`. A version can also be set manually through `Run workflow` on the Actions tab.
+
+The workflow builds the plugin, creates a release with automatically generated notes and attaches the zip archive. It only starts when source files change - editing the README does not trigger a build.
 
 ## Environment Variables
 
 In `dotnet.yml`, modify these variables as needed:
 
-- `PLUGIN_NAME`: your plugin's name (please do not use spaces).
-- `DOTNET_VERSION`: .NET version (default is `8.0.x`).
-- `PATH_PLUGIN`: plugin path (default is `addons/counterstrikesharp/plugins/`).
-- `START_VERSION`: starting version (default is `1.0.0`).
-- `USE_V_VERSION`: prefix the version number with a 'v' (default is `true`).
+| Variable | Default | Description |
+| --- | --- | --- |
+| `PLUGIN_NAME` | plugin name | used for the archive and the folder inside it, do not use spaces |
+| `DOTNET_VERSION` | `10.0.x` | .NET SDK version used to build |
+| `TARGET_FRAMEWORK` | `net10.0` | must match `TargetFramework` in the `.csproj` |
+| `PATH_PLUGIN` | `addons/counterstrikesharp/plugins/` | plugin path inside the archive |
+| `START_VERSION` | `1.0.0` | version used for the first release |
+| `USE_V_VERSION` | `true` | prefix the version number with a `v` |
 
 ## Adding Your Own Template
-
-To add your own template, follow these steps:
 
 1. Clone the repository:
 
@@ -131,15 +127,9 @@ To add your own template, follow these steps:
     dotnet new install . --force
     ```
 
-## Conclusion
+## Contributing
 
-In the future, additional templates will be added as needed. If you have any ideas on how to improve or modify these templates to make plugin development even easier, please let me know.
-
-Feel free to open an issue or submit a pull request if you have any suggestions or find any problems. Your feedback is always welcome!
-
-## Contact
-
-If you have any questions or suggestions, feel free to contact me on Discord: `delfram`.
+New templates are added as needed. If you have an idea, found a problem or want to improve something - open an issue or a pull request, feedback is always welcome.
 
 ## Credits
 
