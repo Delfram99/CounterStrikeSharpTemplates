@@ -9,7 +9,7 @@ CounterStrikeSharpTemplates is a thoughtfully designed template set for kick-sta
 
 ## Installation
 
-1. Install the [.NET 8.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
+1. Install the [.NET 10.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0).
 2. Install the templates package:
 
 ```bash
