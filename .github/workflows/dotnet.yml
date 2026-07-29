@@ -75,7 +75,8 @@ jobs:
     if: needs.version.outputs.version_changed == 'true'
     needs: version
     permissions:
-      contents: write
+      contents: read
+      id-token: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -86,10 +87,20 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Pack
-        run: dotnet pack -o nupkgs /p:PackageVersion=${{ needs.version.outputs.new_tag }}
+        env:
+          NEW_TAG: ${{ needs.version.outputs.new_tag }}
+        run: dotnet pack -o nupkgs -p:PackageVersion="$NEW_TAG"
+
+      - name: NuGet login
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: Delfram
 
       - name: Push to NuGet
-        run: dotnet nuget push nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+        run: dotnet nuget push nupkgs/*.nupkg --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
 
   release:
     needs: [version, pack]
