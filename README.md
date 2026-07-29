@@ -42,6 +42,7 @@ dotnet new cssharp -n MyPlugin
 | `--g` | add GitHub files: build & release workflow, release notes config, `.gitignore` |
 | `--np` | plugin name used in code (default `MyPlugin`) |
 | `--ap` | author name (default `AuthorName`) |
+| `--skipRestore` | do not run `dotnet restore` after the project is created |
 
 ```bash
 dotnet new cssharp -n MyPlugin --t datamysql --g --np "My Plugin" --ap "Author Name"
