@@ -1,5 +1,5 @@
 {
-    "$schema": "http://json.schemastore.org/template",
+    "$schema": "https://json.schemastore.org/template",
     "author": "Delfram",
     "classifications": [
         "CounterStrikeSharp",
@@ -12,8 +12,8 @@
     ],
     "name": "CounterStrikeSharpTemplates",
     "groupIdentity": "com.plugin.CounterStrikeSharp",
-    "identity": "com.plugin.CounterStrikeSharp.Template.1.0.0",
-    "description": "This is a collection templates specifically designed for creating plugins for the Runtime Assembly CounterStrikeSharp. It includes foundational structures and utility functions to expedite your CounterStrikeSharp plugin development.",
+    "identity": "com.plugin.CounterStrikeSharp.Template",
+    "description": "Project templates for CounterStrikeSharp plugins: a ready-made project structure, a VS Code build task and an optional GitHub workflow with automatic versioning and releases.",
     "shortName": "cssharp",
     "sourceName": "CSSharpTemplates",
     "tags": {
@@ -67,6 +67,12 @@
             ],
             "defaultValue": "default",
             "description": "Choose the type of template for your project based on the features you need."
+        },
+        "skipRestore": {
+            "type": "parameter",
+            "datatype": "bool",
+            "defaultValue": "false",
+            "description": "Skips the automatic restore of the project after creation."
         }
     },
     "sources": [
@@ -103,6 +109,24 @@
             "source": "templates/datamysql",
             "target": "./",
             "condition": "(t == 'datamysql')"
+        }
+    ],
+    "primaryOutputs": [
+        {
+            "path": "CSSharpTemplates.csproj"
+        }
+    ],
+    "postActions": [
+        {
+            "condition": "(!skipRestore)",
+            "description": "Restore NuGet packages required by this project.",
+            "manualInstructions": [
+                {
+                    "text": "Run 'dotnet restore'"
+                }
+            ],
+            "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+            "continueOnError": true
         }
     ]
 }

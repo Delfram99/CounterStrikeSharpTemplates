@@ -3,8 +3,22 @@ name: Build & Release
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - '**/*.cs'
+      - '**/*.csproj'
+      - '**/*.sln'
+      - '**/*.slnx'
+      - 'lang/**'
+      - '.github/workflows/dotnet.yml'
   pull_request:
     branches: [ "main" ]
+    paths:
+      - '**/*.cs'
+      - '**/*.csproj'
+      - '**/*.sln'
+      - '**/*.slnx'
+      - 'lang/**'
+      - '.github/workflows/dotnet.yml'
   workflow_dispatch:
     inputs:
       PluginVersion:
@@ -14,7 +28,8 @@ on:
 
 env:
   PLUGIN_NAME: CSSharpTemplates
-  DOTNET_VERSION: 8.0.x
+  DOTNET_VERSION: 10.0.x
+  TARGET_FRAMEWORK: net10.0
   PATH_PLUGIN: addons/counterstrikesharp/plugins/
   START_VERSION: 1.0.0
   USE_V_VERSION: true
@@ -25,169 +40,161 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     outputs:
-      new_tag: ${{ steps.determine_new_tag.outputs.result }}
-      no_release: ${{ steps.check_release.outputs.result }}
+      new_tag: ${{ steps.determine_new_tag.outputs.new_tag }}
+      release_exists: ${{ steps.check_release.outputs.release_exists }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: '0'
 
       - name: Check if tag exists
         if: github.event_name == 'workflow_dispatch'
         id: check_tag
-        run: |
-          if git fetch --tags && git tag -l | grep -q "^${{ github.event.inputs.PluginVersion }}$"; then
-            echo "Tag ${{ github.event.inputs.PluginVersion }} already exists."
-            echo "tag_exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "Tag ${{ github.event.inputs.PluginVersion }} does not exist."
-            echo "tag_exists=false" >> $GITHUB_OUTPUT
-          fi
+        env:
+          PLUGIN_VERSION: ${{ github.event.inputs.PluginVersion }}
         shell: bash
+        run: |
+          git fetch --tags --force
+          if git rev-parse -q --verify "refs/tags/$PLUGIN_VERSION" > /dev/null; then
+            echo "Tag $PLUGIN_VERSION already exists."
+            echo "tag_exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Tag $PLUGIN_VERSION does not exist."
+            echo "tag_exists=false" >> "$GITHUB_OUTPUT"
+          fi
   
       - name: Set custom tag and push to repository
         if: github.event_name == 'workflow_dispatch' && steps.check_tag.outputs.tag_exists == 'false'
         id: set_custom_tag
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git tag ${{ github.event.inputs.PluginVersion }}
-          git push origin ${{ github.event.inputs.PluginVersion }}
+        env:
+          PLUGIN_VERSION: ${{ github.event.inputs.PluginVersion }}
         shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git tag "$PLUGIN_VERSION"
+          git push origin "refs/tags/$PLUGIN_VERSION"
 
       - name: Bump version and push tag
-        if: github.event_name != 'workflow_dispatch'
+        if: github.event_name == 'push'
         id: create_tag
-        uses: anothrNick/github-tag-action@1.64.0
+        uses: anothrNick/github-tag-action@1.75.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WITH_V: ${{ env.USE_V_VERSION }}
           DEFAULT_BUMP: none
           INITIAL_VERSION: ${{ env.START_VERSION }}
 
-      - name: Determine New Tag
+      - name: Determine new tag
         id: determine_new_tag
-        uses: actions/github-script@v7.0.1
-        with:
-          script: |
-            const customTag = "${{ github.event.inputs.PluginVersion }}";
-            const createdTag = "${{ steps.create_tag.outputs.new_tag }}";
-            const newTag = customTag ? customTag : createdTag;
-            console.log(`New tag determined: ${newTag}`);
-            return newTag;
+        env:
+          CUSTOM_TAG: ${{ github.event.inputs.PluginVersion }}
+          CREATED_TAG: ${{ steps.create_tag.outputs.new_tag }}
+        shell: bash
+        run: |
+          new_tag="${CUSTOM_TAG:-$CREATED_TAG}"
+          echo "New tag determined: ${new_tag:-(none)}"
+          echo "new_tag=$new_tag" >> "$GITHUB_OUTPUT"
 
       - name: Check if release exists
         id: check_release
-        uses: actions/github-script@v7.0.1
-        with:
-          script: |
-            let release_exists;
-            try {
-              const response = await github.rest.repos.getReleaseByTag({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                tag: ${{ steps.determine_new_tag.outputs.result }}
-              });
-              console.log(`Release found for tag: ${response.data.tag_name}`);
-              release_exists = true;
-            } catch (error) {
-              if (error.status === 404) {
-                console.log("No release found for this tag.");
-                release_exists = false;
-              } else {
-                throw error;
-              }
-            }
-            return release_exists;
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          NEW_TAG: ${{ steps.determine_new_tag.outputs.new_tag }}
+        shell: bash
+        run: |
+          if [ -z "$NEW_TAG" ]; then
+            echo "No tag determined, nothing to release."
+            echo "release_exists=false" >> "$GITHUB_OUTPUT"
+          elif gh release view "$NEW_TAG" > /dev/null 2>&1; then
+            echo "Release for tag $NEW_TAG already exists."
+            echo "release_exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No release found for tag $NEW_TAG."
+            echo "release_exists=false" >> "$GITHUB_OUTPUT"
+          fi
 
   build:
-    if: needs.version.outputs.no_release == 'false'
+    if: needs.version.outputs.release_exists == 'false'
     needs: version
     permissions:
-      contents: write
+      contents: read
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
     - name: Update version
-      run: find . -type f -name '*.cs' -exec sed -i 's/public override string ModuleVersion =>.*/public override string ModuleVersion => ${{ needs.version.outputs.new_tag }};/g' {} \;
-    
+      if: needs.version.outputs.new_tag != ''
+      env:
+        NEW_TAG: ${{ needs.version.outputs.new_tag }}
+      run: |
+        find . -type f -name '*.cs' -exec sed -i "s|public override string ModuleVersion =>.*|public override string ModuleVersion => \"${NEW_TAG}\";|g" {} \;
+
     - name: Build
       run: dotnet build -c Release
-    
+
     - name: Create plugin directory
       run: |
-        mkdir -p plugin/${{ env.PATH_PLUGIN }}${{ env.PLUGIN_NAME }}
-        rm -rf ./bin/Release/net8.0/*.pdb
-        rm -rf ./bin/Release/net8.0/*.deps.json
-        cp -r ./bin/Release/net8.0/* plugin/${{ env.PATH_PLUGIN }}${{ env.PLUGIN_NAME }}
+        mkdir -p "plugin/${PATH_PLUGIN}${PLUGIN_NAME}"
+        rm -f "./bin/Release/${TARGET_FRAMEWORK}"/*.pdb "./bin/Release/${TARGET_FRAMEWORK}"/*.deps.json
+        cp -r "./bin/Release/${TARGET_FRAMEWORK}"/* "plugin/${PATH_PLUGIN}${PLUGIN_NAME}"
 
     - name: Zip plugin
       run: |
         cd plugin/
-        zip -r ${{ env.PLUGIN_NAME }}-${{ github.sha }}.zip .
+        zip -r "${PLUGIN_NAME}-${GITHUB_SHA}.zip" .
 
     - name: Publish
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ env.PLUGIN_NAME }}-${{ github.sha }}
         path: plugin
 
   release:
+    if: needs.version.outputs.new_tag != '' && github.event_name != 'pull_request'
     needs: [version, build]
     permissions:
       contents: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ${{ env.PLUGIN_NAME }}-${{ github.sha }}
           path: plugin
 
-      - name: Create release
-        id: create_release
-        uses: actions/github-script@v7.0.1
-        with:
-          script: |
-            const tag_name = ${{ needs.version.outputs.new_tag }}.replace(/\"/g, '');
-            const release = await github.rest.repos.createRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag_name: tag_name,
-              name: `[${tag_name}] ${{ env.PLUGIN_NAME }}`,
-              body: "Changes in this Release",
-              draft: false,
-              prerelease: false
-            });
-            return release.data.id;
+      - name: Create release and upload asset
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          NEW_TAG: ${{ needs.version.outputs.new_tag }}
+        shell: bash
+        run: |
+          version="${NEW_TAG#v}"
+          notes=$(gh api "repos/${GH_REPO}/releases/generate-notes" -f tag_name="$NEW_TAG" --jq .body)
 
-      - name: Upload release asset
-        id: upload-release-asset
-        uses: actions/github-script@v7.0.1
-        with:
-          script: |
-            const fs = require('fs');
-            const assetPath = `./plugin/${{ env.PLUGIN_NAME }}-${{ github.sha }}.zip`;
-            const assetName = `${{ env.PLUGIN_NAME }}-${{ needs.version.outputs.new_tag }}.zip`;
-            const asset = fs.readFileSync(assetPath);
-            
-            const response = await github.rest.repos.uploadReleaseAsset({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              release_id: ${{ steps.create_release.outputs.result }},
-              name: assetName,
-              data: asset,
-              headers: {
-                'content-type': 'application/zip',
-                'content-length': asset.length
-              }
-            });
-            console.log(`Asset uploaded: ${response.data.browser_download_url}`);
+          # generate-notes lists merged pull requests only - fall back to plain commits when there are none
+          if ! grep -q '^\* ' <<< "$notes"; then
+            prev_tag=$(gh release view --json tagName --jq .tagName 2>/dev/null || true)
+            if [ -n "$prev_tag" ]; then
+              commits=$(gh api "repos/${GH_REPO}/compare/${prev_tag}...${NEW_TAG}" \
+                --jq '.commits[] | "* \(.commit.message | split("\n")[0]) by @\(.author.login // .commit.author.name) ([\(.sha[0:7])](\(.html_url)))"')
+              if [ -n "$commits" ]; then
+                notes=$(printf "## What's Changed\n%s\n\n%s" "$commits" "$notes")
+              fi
+            fi
+          fi
+
+          notes=$(sed -E 's#\*\*Full Changelog\*\*: (https://[^[:space:]]+/compare/([^[:space:]]+))#**Full Changelog**: [\2](\1)#' <<< "$notes")
+
+          gh release create "$NEW_TAG" \
+            --title "v${version}" \
+            --notes "$notes" \
+            "./plugin/${PLUGIN_NAME}-${GITHUB_SHA}.zip#${PLUGIN_NAME}-${NEW_TAG}.zip"
+          echo "Release published: $(gh release view "$NEW_TAG" --json url --jq .url)"

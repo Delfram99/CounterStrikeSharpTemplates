@@ -7,14 +7,14 @@
         <PackageIcon>icon.png</PackageIcon>
         <Authors>Delfram</Authors>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <Description>A comprehensive set of CounterStrikeSharp templates for creating Counter-Strike 2 plugins. These templates provide base structures, utility functions, and best practices to kickstart your CounterStrikeSharp plugin development. Ideal for both beginners and experienced developers.</Description>
+        <Description>Project templates for CounterStrikeSharp plugins: a ready-made project structure, a VS Code build task and an optional GitHub workflow with automatic versioning and releases.</Description>
         <PackageTags>counterstrikesharp;cs2plugin;cs2;cssharp</PackageTags>
         <PackageProjectUrl>https://github.com/Delfram99/CounterStrikeSharpTemplates</PackageProjectUrl>
         <RepositoryUrl>https://github.com/Delfram99/CounterStrikeSharpTemplates.git</RepositoryUrl>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageType>Template</PackageType>
         <NoWarn>$(NoWarn);NU5128</NoWarn>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <IncludeBuildOutput>false</IncludeBuildOutput>
         <NoDefaultExcludes>true</NoDefaultExcludes>
         <NoBuild>true</NoBuild>
@@ -24,6 +24,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Remove="**/*" />
         <content Include="content/**/*" Exclude="content/templates/**/bin/**;content/templates/**/obj/**">
             <PackagePath>content/</PackagePath>
         </content>
